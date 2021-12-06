@@ -1,0 +1,228 @@
+package com.springmvc;
+
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+@Controller
+public class RegisterUserController {
+
+	@RequestMapping("/registration")
+	public String registrationPage() {
+	
+		return "Register.jsp";
+	
+	}
+	
+	@RequestMapping("/registerUser")
+	public ModelAndView registerUser(@ModelAttribute("user") User userObj) {
+		
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("com/springmvc/bean.xml");
+		UserDao userdao = (UserDao) context.getBean("udao");
+		ModelAndView mv = new ModelAndView();
+		try {
+				
+			int result = userdao.saveUser(userObj);
+			
+						
+			if(result > 0) {
+				mv.setViewName("Login.jsp");
+				mv.addObject("message", "Registration Successful");
+			} else {
+				mv.setViewName("Register.jsp");
+				mv.addObject("message", "Registration Failed");
+			}
+		} catch (Exception e) {
+			mv.setViewName("Register.jsp");
+			mv.addObject("message", "User already exist.");
+		}
+		return mv;
+		
+	}
+	
+}
+
+--------------------------------------------------------------------------------------------------
+package com.springmvc;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+@Controller
+public class LoginValidationController {
+	
+	@RequestMapping("/")
+	public String landingPage() {
+	
+		return "Login.jsp";
+	
+	}
+	
+	
+	@RequestMapping("/authenticateUser")
+	public ModelAndView validateUser(@ModelAttribute("user") User userObj) {
+		
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("com/springmvc/bean.xml");
+		UserDao userdao = (UserDao) context.getBean("udao");
+		
+		// get user from database
+		User resultUser = userdao.getUserByUsername(userObj);
+		
+		String uname = userObj.getUsername();
+		String pass = userObj.getPassword();
+		
+		ModelAndView mv = new ModelAndView();
+		
+		if(uname.equals(resultUser.getUsername()) && pass.equals(resultUser.getPassword())) {
+			 mv.setViewName("Success.jsp");
+		} else {
+			mv.setViewName("Error.jsp");
+		}
+		
+		context.close();
+		return mv;
+		
+	}
+}
+------------------------------------------------------------------------------------------------------------------
+package com.springmvc;
+
+public class User {
+	private int id;
+	private String username;
+	private String password;
+	private String email;
+	
+	@Override
+	public String toString() {
+		return "User [id=" + id + ", username=" + username + ", password=" + password + ", email=" + email + "]";
+	}
+	
+	public User() {}
+	
+	public User(int id, String username, String password, String email) {
+		super();
+		this.id = id;
+		this.username = username;
+		this.password = password;
+		this.email = email;
+	}
+
+	public int getId() {
+		return id;
+	}
+	
+	public String getUsername() {
+		return username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+	
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	
+}
+------------------------------------------------------------------------------------------------------------------------------
+package com.springmvc;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
+
+public class UserDao {
+
+	private JdbcTemplate jdbcTemplate;  
+	  
+	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {  
+	    this.jdbcTemplate = jdbcTemplate;  
+	}  
+	
+	public int saveUser(User u){  
+	    String query="insert into user(email, username, password) values('"+ u.getEmail() +"', '"+ u.getUsername() +"', '" + u.getPassword() + "')"; 
+	    return jdbcTemplate.update(query);  
+	}  
+	
+	public User getUserByUsername(User u) {
+	    String sql = "SELECT * FROM user WHERE username='" + u.getUsername() + "'";
+
+	    return jdbcTemplate.query(sql, new ResultSetExtractor<User>() {
+	
+	        @Override
+	        public User extractData(ResultSet rs) throws SQLException, DataAccessException {
+	            if (rs.next()) {
+	                User resultUser = new User();
+	                resultUser.setId(rs.getInt("id"));
+	                resultUser.setEmail(rs.getString("email"));
+	                resultUser.setUsername(rs.getString("username"));
+	                resultUser.setPassword(rs.getString("password"));
+	                return resultUser;
+	            }
+	 
+	            return null;
+	        }
+	 
+	    });
+	}
+}
+-----------------------------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns = "http://www.springframework.org/schema/beans"
+   xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation = "http://www.springframework.org/schema/beans
+   http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+   
+   <!-- <bean id="adminObj" class="com.springmvc.User">
+  	<property name="email" value="anyone_hello@email.com"></property>
+   	<property name="username" value="admin"></property>
+   	<property name="password" value="root"></property>
+   </bean> -->
+   
+   <bean id="ds" class="org.springframework.jdbc.datasource.DriverManagerDataSource">  
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />  
+		<property name="url" value="jdbc:mysql://localhost:3306/springDatabase" />  
+		<property name="username" value="root" />  
+		<property name="password" value="root" />  
+	</bean>  
+	  
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">  
+		<property name="dataSource" ref="ds"></property>  
+	</bean>  
+	  
+	<bean id="udao" class="com.springmvc.UserDao">  
+		<property name="jdbcTemplate" ref="jdbcTemplate"></property>  
+	</bean>  
+   
+</beans>

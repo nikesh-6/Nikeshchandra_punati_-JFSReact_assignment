@@ -1,0 +1,71 @@
+package com.springmvc;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+@Controller
+public class SimpleInterestController {
+	
+	@RequestMapping("/")
+	public String landingPage() {
+	
+		return "SimpleInterest.jsp";
+	
+	}
+	
+	@RequestMapping("/calculate")
+	public ModelAndView calculateIntrest(HttpServletRequest request, HttpServletResponse response) {
+		
+		double principal = Double.parseDouble(request.getParameter("pamount"));
+		double noYear = Double.parseDouble(request.getParameter("noyear"));
+		double rateOfInterest = Double.parseDouble(request.getParameter("intrest"));
+		double simpleInterest = ((principal*noYear*rateOfInterest)/100);
+		
+		ModelAndView mv = new ModelAndView("ResultDisplay.jsp");
+		mv.setViewName("ResultDisplay.jsp");
+		mv.addObject("result", simpleInterest);
+		return mv;
+		
+	}
+}
+
+ResultDisplay.jsp--------------------------------------------------
+
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" %>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+	Simple Interest is: <%= request.getAttribute("result") %>
+</body>
+</html>
+
+simpleintrest.jsp-----------------------------------------------------
+
+
+<html>
+<body>
+<h2>Simple Interest Calculation</h2>
+<form action="calculate" method="post">
+	<label for="pamount">Principal Amount</label>
+	<input id="pamount" name="pamount" type="number"/>
+	<br/><br/>
+	<label for="noyear">No. of Year</label>
+	<input id="noyear" name="noyear" type="number"/>
+	<br/><br/>
+	<label for="intrest">Rate of Interest</label>
+	<input id="intrest" name="intrest" type="number"/>
+	<br/><br/>
+	<button type="submit" style="width: 150px; height: 30px; background-color: darkgrey; border-radius: 15px">Calculate</button>
+</form>
+</body>
+</html>
+
+

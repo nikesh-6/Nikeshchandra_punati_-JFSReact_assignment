@@ -1,0 +1,167 @@
+3.
+package com.springmvc;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+@Controller
+public class LoginValidationController {
+	
+	@RequestMapping("/")
+	public String landingPage() {
+	
+		return "Login.jsp";
+	
+	}
+	
+	@RequestMapping("/authenticateUser")
+	public ModelAndView validateUser(@ModelAttribute("user") User userObj) {
+		
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("com/springmvc/bean.xml");
+		User userbean = (User) context.getBean("adminObj");
+		
+		//		String existingUser = "admin";
+		//		String adminPass = "root";
+
+		String uname = userObj.getUsername();
+		String pass = userObj.getPassword();
+		
+		ModelAndView mv = new ModelAndView();
+		
+		if(uname.equals(userbean.getUsername()) && pass.equals(userbean.getPassword())) {
+			 mv.setViewName("Success.jsp");
+		} else {
+			mv.setViewName("Error.jsp");
+		}
+		
+		context.close();
+		return mv;
+		
+	}
+}
+
+
+user-------------------------------------------------------------------------------------------------------
+package com.springmvc;
+
+public class User {
+	private String username;
+	private String password;
+	private String email;
+	
+	@Override
+	public String toString() {
+		return "User [username=" + username + ", password=" + password + ", email=" + email + "]";
+	}
+	
+	public User() {}
+	
+	public User(String username, String password, String email) {
+		super();
+		this.username = username;
+		this.password = password;
+		this.email = email;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	
+	
+}
+
+bean-----------------------------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns = "http://www.springframework.org/schema/beans"
+   xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation = "http://www.springframework.org/schema/beans
+   http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+   
+   <bean id="adminObj" class="com.springmvc.User">
+  	<property name="email" value="heloo_123@email.com"></property>
+   	<property name="username" value="admin"></property>
+   	<property name="password" value="root"></property>
+   </bean>
+   
+</beans>
+
+login.jsp-------------------------------------------------------------------------------------------------------------------------
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" %>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>User Login Validation</title>
+</head>
+<body style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+	<h1 style="text-align: center; width: 100%;">Login Page</h1>
+	<form action="authenticateUser" method="post" modelAttribute="user" style="border: 2px solid gray; padding:40px; align-content: center;">
+	
+		
+		<label for="usernameId">Username : </label>
+		<input id="usernameId" name="username" type="text"/>
+		<br/><br/>
+		<label for="passwordId">Password : </label>
+		<input id="passwordId" name="password" type="password"/>
+		<br/><br/>
+		
+		<button type="submit" style="width: 220px; height: 30px; text-decoration: black; background-color: white; border-radius: 15px; border: 2px solid blue">
+			Login
+		</button>
+		<br/> <br/>
+		Don't have account? <a href="/">Register</a>
+		
+	</form>
+</body>
+</html>
+
+
+error.jsp-----------------------------------------------------------------------------------------------------------------------
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+	<h1 style="color: red">Sorry, Wrong credentials..</h1>
+	<a href="/Q3_LoginAuthentication"><h3>Try Again</h3></a>
+</body>
+</html>
+
+success.jsp-----------------------------------------------------------------------------------------------------------------------
+<html>
+<body>
+	<h1 style="color: green">Login Successful..</h1>
+</body>
+</html>
