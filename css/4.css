@@ -1,0 +1,17 @@
+
+body{
+    background-color: lightcyan;
+}
+a:link {
+    color: orange;
+  }
+  
+  a:visited {
+    color: 4px solid navy;
+  }
+  a:hover {
+    color: red;
+  }
+  a:active {
+    color: blue;
+  }
